@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: resnet-service
+  name: resnet-service
+spec:
+  ports:
+  - name: grpc
+    port: 9000
+    targetPort: 9000
+  - name: http
+    port: 8500
+    targetPort: 8500
+  selector:
+    app: resnet-service
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: resnet-service
+  name: resnet-v1
+spec:
+  replicas: 25
+  selector:
+    matchLabels:
+      app: resnet-service
+  template:
+    metadata:
+      labels:
+        app: resnet-service
+        version: v1
+    spec:
+      nodeSelector:
+        lifecycle: Ec2Spot
+      containers:
+      - args:
+        - --port=9000
+        - --rest_api_port=8500
+        - --model_name=resnet
+        - --model_base_path=s3://<S3_BUCKET>/resnet/
+        command:
+        - /usr/bin/tensorflow_model_server
+        env:
+        - name: AWS_REGION
+          value: <YOUR REGION>
+        - name: S3_ENDPOINT
+          value: s3.<YOUR REGION>.amazonaws.com
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: s3-credentials
+              key: AWS_SECRET_ACCESS_KEY        
+        image: tensorflow/serving
+        imagePullPolicy: IfNotPresent
+        name: resnet-service
+        ports:
+        - containerPort: 9000
+        - containerPort: 8500
+        resources:
+          limits:
+            cpu: "4"
+            memory: 4Gi
+          requests:
+            cpu: "2"
+            memory: 2Gi
