@@ -1,0 +1,8 @@
+namespace: default
+secretGenerator:
+- name: s3-credentials
+  literals:
+  - AWS_ACCESS_KEY_ID=<<AWS_ACCESS_KEY_ID>>
+  - AWS_SECRET_ACCESS_KEY=<<AWS_SECRET_ACCESS_KEY>>
+generatorOptions:
+  disableNameSuffixHash: true
