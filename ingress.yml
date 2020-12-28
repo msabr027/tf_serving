@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: "resnet-service"
+  namespace: "default"
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+  labels:
+    app: resnet-service
+spec:
+  rules:
+    - http:
+        paths:
+          - path: "/v1/models/resnet:predict"
+            backend:
+              serviceName: "resnet-service"
+              servicePort: 8500
